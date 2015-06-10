@@ -1,2 +1,2 @@
-# Experimental Interaction Project Boilerplate
+# Exercise 2: Iteration
 
