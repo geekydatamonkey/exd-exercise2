@@ -12,12 +12,27 @@ let Circle = require('./circle');
 let config = {
   canvasWrapper: '.canvas-wrapper',
   color: {
-    background: '#eee'
+    background: [222,50,255,0]
   },
-  numberOfCircles: 20
+  loopsPerBgChange: 10,
+  numberOfCircles: 15,
+  shapeFunctions: [
+    'ellipse',
+    'rect',
+    'bezier',
+    'triangle',
+    'line',
+    'curve'
+  ]
 };
 
 let circleList = [];
+let loopNum = 0; // tracking loops per Bg change
+
+function getRandomFunction() {
+  let rand = randomInt(0,config.shapeFunctions.length - 1);
+  return config.shapeFunctions[rand];
+}
 
 function mySketch(s){
 
@@ -31,57 +46,71 @@ function mySketch(s){
       $canvasWrapper.innerHeight()
     ).parent($canvasWrapper[0]);
 
-    s.background(config.color.background);
+
+    // Modes
     s.colorMode(s.HSB);
     s.noFill();
+    s.ellipseMode(s.CORNER);
 
     for (let i=0; i < config.numberOfCircles; i++) {
       let c = new Circle(randomInt(s.width));
+      c.setRadius(50);
       circleList.push(c);
     }
 
+    s.background.apply(s,config.color.background);
   };
 
   s.draw = function() {
+
+    if (loopNum === 0) {
+      config.color.background[0] = mod(config.color.background[0] + 1, 255);
+      s.background.apply(s,config.color.background);
+    }
+    loopNum = mod(loopNum + 1, config.loopsPerBgChange);
 
     circleList.map(function(circle) {
       let color = circle.color;
 
       // if at the bottom, randomly start over from the top
-      if (circle.y >= s.height) {
+      if (circle.y >= s.height ) {
+        console.log('bottom');
         circle.y = 0;
         circle.x = randomInt(s.width);
         return;
       }
 
-      circle.x = mod(circle.x + s.random(0,-0.5), s.width);
-      circle.y = mod(circle.y + s.random(0,10), s.height);
+      circle.x = mod(circle.x + s.random(0,0), s.width);
+      circle.y = circle.y + s.random(0,10);
       circle.radius = Math.max(1,circle.radius + s.random(-1,1));
 
       let i = randomInt(0,2);
       color[i] = mod(color[i] + randomInt(-5,5), 255);
+      //
+      color[3] = color[3] - 1 || 255;
 
       s.stroke(color[0], color[1], color[2]);
       s.strokeWeight(randomInt(1,5));
 
-      let shapes = ['ellipse','rect','bezier'];
-      let fn = shapes[randomInt(0,shapes.length - 1)];
+
+      let fn = getRandomFunction();
 
       // randomness just to see what happens
       if (fn === 'ellipse' || fn === 'rect') {
         s[fn](circle.x, circle.y, circle.radius, circle.radius);
       } else {
         s[fn](
-          circle.x, circle.y,
-          randomInt(s.width),randomInt(s.height),
-          randomInt(s.width),randomInt(s.height),
-          randomInt(s.width),randomInt(s.height)
-        )
+          circle.x, 
+          circle.y,
+          circle.x + randomInt(1,5),
+          circle.y + randomInt(1,5),
+          circle.x + circle.radius * randomInt(0,1),
+          circle.y + circle.radius * randomInt(0,1),
+          circle.x + circle.radius * randomInt(0,1),
+          circle.y + circle.radius * randomInt(0,1)
+        );
       }
-   
     });
-
-
   };
 
   s.windowResized = function() {

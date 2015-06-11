@@ -6,7 +6,7 @@ class Circle {
     this.radius = 10;
     this.x = x;
     this.y = y;
-    this.color = [100,255,200];
+    this.color = [100,255,200,255];
   }
 
   move(x,y) {
