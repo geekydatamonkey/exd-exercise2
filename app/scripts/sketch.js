@@ -3,113 +3,68 @@
 
 'use strict';
 let p5 = require('p5');
-//let _ = require('lodash');
 let $ = require('jquery');
-let mod = require('./mod');
 let randomInt = require('./randomInt');
-let Circle = require('./circle');
+let Shape = require('./shape');
 
 let config = {
   canvasWrapper: '.canvas-wrapper',
-  color: {
-    background: [222,50,255,0]
-  },
-  loopsPerBgChange: 10,
-  numberOfCircles: 15,
-  shapeFunctions: [
-    'ellipse',
-    'rect',
-    'bezier',
-    'triangle',
-    'line',
-    'curve'
-  ]
+  numberOfShapes: 40
 };
 
-let circleList = [];
-let loopNum = 0; // tracking loops per Bg change
-
-function getRandomFunction() {
-  let rand = randomInt(0,config.shapeFunctions.length - 1);
-  return config.shapeFunctions[rand];
-}
+let shapeList = [];
 
 function mySketch(s){
 
   s.setup = function (){
 
+    // create canvas and put in canvasWrapper
     let $canvasWrapper = $(config.canvasWrapper);
-
-    // put in canvasWrapper
     s.createCanvas(
       $canvasWrapper.innerWidth(),
       $canvasWrapper.innerHeight()
     ).parent($canvasWrapper[0]);
 
+    for (let i=0; i < config.numberOfShapes; i++) {
+      let shape = new Shape(randomInt(s.width));
+      shape.setSketch(s);
+      shapeList.push(shape);
+    }
 
-    // Modes
+    // Setup modes
     s.colorMode(s.HSB);
     s.noFill();
     s.ellipseMode(s.CORNER);
 
-    for (let i=0; i < config.numberOfCircles; i++) {
-      let c = new Circle(randomInt(s.width));
-      c.setRadius(50);
-      circleList.push(c);
-    }
-
-    s.background.apply(s,config.color.background);
+    //s.background.apply(s,config.color.background);
   };
 
   s.draw = function() {
 
-    if (loopNum === 0) {
-      config.color.background[0] = mod(config.color.background[0] + 1, 255);
-      s.background.apply(s,config.color.background);
-    }
-    loopNum = mod(loopNum + 1, config.loopsPerBgChange);
+    shapeList.map(function(shape) {
 
-    circleList.map(function(circle) {
-      let color = circle.color;
+      // update stroke color
+      shape.moveColorRandom(-5,5);
+      s.stroke.apply(s,shape.getColor());
 
-      // if at the bottom, randomly start over from the top
-      if (circle.y >= s.height ) {
-        console.log('bottom');
-        circle.y = 0;
-        circle.x = randomInt(s.width);
+
+      // if at the bottom, start back at top randomly positioned x
+      if (shape.y >= s.height ) {
+        shape.move(randomInt(s.width), 0);
         return;
       }
 
-      circle.x = mod(circle.x + s.random(0,0), s.width);
-      circle.y = circle.y + s.random(0,10);
-      circle.radius = Math.max(1,circle.radius + s.random(-1,1));
-
-      let i = randomInt(0,2);
-      color[i] = mod(color[i] + randomInt(-5,5), 255);
-      //
-      color[3] = color[3] - 1 || 255;
-
-      s.stroke(color[0], color[1], color[2]);
-      s.strokeWeight(randomInt(1,5));
-
-
-      let fn = getRandomFunction();
-
-      // randomness just to see what happens
-      if (fn === 'ellipse' || fn === 'rect') {
-        s[fn](circle.x, circle.y, circle.radius, circle.radius);
+      // move shape away from mouse if getting close
+      // otherwise, continue straight down
+      if (shape.getDistanceFromMouse() < 150) {
+        shape.moveAwayFromMouse(5);
       } else {
-        s[fn](
-          circle.x, 
-          circle.y,
-          circle.x + randomInt(1,5),
-          circle.y + randomInt(1,5),
-          circle.x + circle.radius * randomInt(0,1),
-          circle.y + circle.radius * randomInt(0,1),
-          circle.x + circle.radius * randomInt(0,1),
-          circle.y + circle.radius * randomInt(0,1)
-        );
+        shape.move(0,1);
       }
+
+      //randomly grow or shrink radius
+      shape.changeRadius(s.random(-1,1));
+      shape.render();
     });
   };
 
