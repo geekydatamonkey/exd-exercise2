@@ -6,11 +6,11 @@ const mod = require('./mod');
 class Shape {
 
   constructor(x = 0, y = 0) {
-    this.radius = 50;
+    this.radius = 1;
     this.x = x;
     this.y = y;
     this.color = [100,255,200,50];
-    this.minRadius = 1;
+    this.minRadius = 0;
 
     // randomly assign drawing function
     this.drawFunction = _.sample([

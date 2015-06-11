@@ -51,6 +51,8 @@ function mySketch(s){
 
   s.draw = function() {
 
+    s.background.apply(s,[0,0,222,20]);
+
     shapeList.map(function(shape) {
 
       // update stroke color
