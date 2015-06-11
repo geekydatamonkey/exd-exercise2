@@ -9,7 +9,8 @@ let Shape = require('./shape');
 
 let config = {
   canvasWrapper: '.canvas-wrapper',
-  numberOfShapes: 40
+  numberOfShapes: 40,
+  mouseIsClose: 100,
 };
 
 let shapeList = [];
@@ -25,18 +26,27 @@ function mySketch(s){
       $canvasWrapper.innerHeight()
     ).parent($canvasWrapper[0]);
 
+
+    let moveToRandomX = function(shape) {
+      console.log(shape.x);
+      shape.move(randomInt(s.width), 0);
+      console.log(shape.x);
+    };
+
     for (let i=0; i < config.numberOfShapes; i++) {
       let shape = new Shape(randomInt(s.width));
       shape.setSketch(s);
+      shape.onBottomEdge(moveToRandomX);
       shapeList.push(shape);
     }
 
     // Setup modes
     s.colorMode(s.HSB);
-    s.noFill();
+    //s.noFill();
     s.ellipseMode(s.CORNER);
+    //s.blendMode(s.SCREEN);
 
-    //s.background.apply(s,config.color.background);
+    s.background.apply(s,[0,0,222]);
   };
 
   s.draw = function() {
@@ -45,21 +55,15 @@ function mySketch(s){
 
       // update stroke color
       shape.moveColorRandom(-5,5);
-      s.stroke.apply(s,shape.getColor());
-
-
-      // if at the bottom, start back at top randomly positioned x
-      if (shape.y >= s.height ) {
-        shape.move(randomInt(s.width), 0);
-        return;
-      }
+      s.stroke.apply(s,[0,0,0,25]);
+      s.fill.apply(s,shape.getColor());
 
       // move shape away from mouse if getting close
       // otherwise, continue straight down
-      if (shape.getDistanceFromMouse() < 150) {
-        shape.moveAwayFromMouse(5);
+      if (shape.getDistanceFromMouse() < config.mouseIsClose) {
+        shape.moveAwayFromMouse(10);
       } else {
-        shape.move(0,1);
+        shape.move(0,10);
       }
 
       //randomly grow or shrink radius

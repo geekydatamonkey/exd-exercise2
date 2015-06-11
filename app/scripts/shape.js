@@ -9,7 +9,7 @@ class Shape {
     this.radius = 50;
     this.x = x;
     this.y = y;
-    this.color = [100,255,200];
+    this.color = [100,255,200,50];
     this.minRadius = 1;
 
     // randomly assign drawing function
@@ -19,6 +19,7 @@ class Shape {
         'triangle'
     ]);
     this.sketch = null;
+    this.handlers = {};
   }
 
   setSketch(sketch) {
@@ -33,6 +34,9 @@ class Shape {
   }
 
   move(x,y) {
+    if (this.y + y >= this.sketch.height) {
+      this.onBottomEdge();
+    }
     this.x = mod(this.x + x, this.sketch.width);
     this.y = mod(this.y + y, this.sketch.height);
     return this;
@@ -47,6 +51,16 @@ class Shape {
 
     this.move(away.x*numOfSteps, away.y*numOfSteps);
 
+  }
+
+  onBottomEdge(fn) {
+    if (arguments.length === 1) {
+      // register function
+      this.handlers.bottom = fn;
+      return;
+    }
+
+    return this.handlers.bottom(this);
   }
 
   /**
